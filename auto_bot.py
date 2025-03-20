@@ -1,4 +1,4 @@
-# Load API Keys
+# ==> Load API Keys
 from dotenv import load_dotenv
 import os
 
@@ -9,12 +9,13 @@ BINANCE_SECRET_KEY = os.getenv("BINANCE_SECRET_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-# Connect to Binance API
+
+# ==> Connect to Binance API
 from binance.client import Client
 
 client = Client(BINANCE_API_KEY, BINANCE_SECRET_KEY)
 
-# Fetch Historical Data
+# ==> Fetch Historical Data
 import pandas as pd
 
 def get_historical_data(symbol="BTCUSDT", interval=Client.KLINE_INTERVAL_1MINUTE, lookback="50"):
@@ -27,7 +28,7 @@ def get_historical_data(symbol="BTCUSDT", interval=Client.KLINE_INTERVAL_1MINUTE
     df['volume'] = df['volume'].astype(float)
     return df
 
-# Compute Indicators (RSI, MACD, Volume_change)
+# ==> Compute Indicators (RSI, MACD, Volume_change)
 import talib
 
 def compute_indicators(df):
@@ -36,7 +37,7 @@ def compute_indicators(df):
     df['Volume_change'] = df['volume'].pct_change()  # Use Volume_change to match the trained model
     return df
 
-# AI model for Decision Making
+# ==> AI model for Decision Making
 import joblib
 
 model = joblib.load("ai_trading_model.pkl")
@@ -47,8 +48,8 @@ def get_trade_signal(df):
     prediction = model.predict(latest_data)[0]
     return prediction
 
-# Place Trade on Binance
-def place_order(signal, quantity=0.001):
+# ==> Place Trade on Binance
+def place_order(signal, quantity=0.00001):
     if signal == "BUY":
         order = client.order_market_buy(symbol="BTCUSDT", quantity=quantity)
         print("Buy Order Placed:", order)
@@ -56,7 +57,8 @@ def place_order(signal, quantity=0.001):
         order = client.order_market_sell(symbol="BTCUSDT", quantity=quantity)
         print("Sell Order Placed:", order)
 
-# Send Trade Signal to Telegram
+
+# ==> Send Trade Signal to Telegram
 import telegram
 import asyncio
 
@@ -65,8 +67,12 @@ bot = telegram.Bot(token=TELEGRAM_BOT_TOKEN)
 async def send_telegram_alert(message):
     await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
-# Main Execution Loop
+# ==> Main Execution Loop
 import time
+import logging
+
+trade_count = 0
+max_trades = 5
 
 while True:
     try:
@@ -77,15 +83,23 @@ while True:
         # Get trade signal
         trade_signal = get_trade_signal(df)
         print(f"Trade Signal: {trade_signal}")
+
+        # Logging
+        logging.basicConfig(filename='trade_log.txt', level=logging.INFO)
+        logging.info(f"Trade Executed: {trade_signal} on BTC/USDT")
         
-        # Execute trade if signal is BUY or SELL
+        # Execute trade
         if trade_signal in ["BUY", "SELL"]:
             place_order(trade_signal)
             asyncio.run(send_telegram_alert(f"Trade Executed: {trade_signal} on BTC/USDT"))
+            trade_count += 1
+            if trade_count >= max_trades:
+                print("Maximum trades reached. Stopping bot.")
+                break
         else:
             print("Signal is HOLD, no action taken.")
         
-        # Wait 1 minute before next iteration
+        # Wait for 1 minute before next iteration
         time.sleep(60)
     
     except Exception as e:

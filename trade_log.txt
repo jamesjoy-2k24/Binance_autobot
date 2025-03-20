@@ -1,0 +1,4 @@
+INFO:root:Trade Executed: HOLD on BTC/USDT
+INFO:root:Trade Executed: HOLD on BTC/USDT
+INFO:root:Trade Executed: HOLD on BTC/USDT
+INFO:root:Trade Executed: HOLD on BTC/USDT
