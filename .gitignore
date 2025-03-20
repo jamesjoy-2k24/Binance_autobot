@@ -1,0 +1,28 @@
+# Python virtual environment
+.venv/
+
+# Environment variables file (contains sensitive API keys)
+.env
+
+# Trained model file (can be large and should be regenerated)
+ai_trading_model.pkl
+
+# TA-Lib wheel file (dependency, should be installed, not tracked)
+TA-Lib-*.whl
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE-specific files (if you use any)
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs (if you add logging later)
+*.log
